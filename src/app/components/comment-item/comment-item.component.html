@@ -1,0 +1,140 @@
+<div class="comment-container" [class]="indentClass">
+  <mat-card class="comment-card" [class.deleted]="comment.isDeleted" [class.stickied]="comment.isStickied">
+    <!-- Comment Header -->
+    <div class="comment-header">
+      <div class="author-info">
+        <span class="username">u/{{ comment.author.username }}</span>
+        <span class="display-name" *ngIf="comment.author.displayName">{{ comment.author.displayName }}</span>
+        <span class="karma">{{ comment.author.karma }} karma</span>
+        <span class="separator">•</span>
+        <span class="timestamp">{{ getTimeAgo(comment.createdAt) }}</span>
+        <span class="edited" *ngIf="comment.isEdited">(edited)</span>
+        <mat-icon class="stickied-icon" *ngIf="comment.isStickied">push_pin</mat-icon>
+      </div>
+      
+      <div class="comment-actions" *ngIf="!comment.isDeleted">
+        <button mat-icon-button *ngIf="isAuthor" (click)="startEdit()" [disabled]="isEditing()">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button *ngIf="isAuthor" (click)="onDelete()">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Comment Content -->
+    <div class="comment-content">
+      <div *ngIf="!isEditing()" class="content-text">
+        <span class="flair" *ngIf="comment.flairText">{{ comment.flairText }}</span>
+        <p>{{ comment.isDeleted ? '[deleted]' : comment.content }}</p>
+      </div>
+
+      <!-- Edit Form -->
+      <div *ngIf="isEditing()" class="edit-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Edit comment</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="editContent"
+            rows="3"
+            maxlength="10000"
+            placeholder="Edit your comment..."
+          ></textarea>
+          <mat-hint align="end">{{ editContent().length }}/10000</mat-hint>
+        </mat-form-field>
+        <div class="form-actions">
+          <button mat-raised-button color="primary" (click)="submitEdit()" [disabled]="!editContent().trim()">
+            Save
+          </button>
+          <button mat-button (click)="cancelEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Footer -->
+    <div class="comment-footer" *ngIf="!comment.isDeleted">
+      <!-- Voting -->
+      <div class="voting">
+        <button 
+          mat-icon-button 
+          (click)="onVote('UPVOTE')"
+          [class.active]="comment.userVote === 'UPVOTE'"
+          class="vote-btn upvote"
+        >
+          <mat-icon>arrow_upward</mat-icon>
+        </button>
+        <span class="score" [class.positive]="comment.score > 0" [class.negative]="comment.score < 0">
+          {{ comment.score }}
+        </span>
+        <button 
+          mat-icon-button 
+          (click)="onVote('DOWNVOTE')"
+          [class.active]="comment.userVote === 'DOWNVOTE'"
+          class="vote-btn downvote"
+        >
+          <mat-icon>arrow_downward</mat-icon>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button mat-button (click)="startReply()" *ngIf="canReply && !isReplying()">
+          <mat-icon>reply</mat-icon>
+          Reply
+        </button>
+        
+        <button 
+          mat-button 
+          (click)="toggleReplies()" 
+          *ngIf="comment.replyCount > 0"
+          class="replies-toggle"
+        >
+          <mat-icon>{{ showReplies() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          {{ comment.replyCount }} {{ comment.replyCount === 1 ? 'reply' : 'replies' }}
+        </button>
+
+        <span class="award-count" *ngIf="comment.awardCount > 0">
+          <mat-icon>emoji_events</mat-icon>
+          {{ comment.awardCount }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Reply Form -->
+    <div *ngIf="isReplying()" class="reply-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Write a reply</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="replyContent"
+          rows="3"
+          maxlength="10000"
+          placeholder="What are your thoughts?"
+        ></textarea>
+        <mat-hint align="end">{{ replyContent().length }}/10000</mat-hint>
+      </mat-form-field>
+      <div class="form-actions">
+        <button mat-raised-button color="primary" (click)="submitReply()" [disabled]="!replyContent().trim()">
+          Reply
+        </button>
+        <button mat-button (click)="cancelReply()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Nested Replies -->
+    <div class="replies" *ngIf="showReplies() && comment.replies && comment.replies.length > 0">
+      <app-comment-item
+        *ngFor="let reply of comment.replies"
+        [comment]="reply"
+        [currentUserId]="currentUserId"
+        [depth]="depth + 1"
+        [maxDepth]="maxDepth"
+        (vote)="onNestedVote($event)"
+        (reply)="onNestedReply($event)"
+        (edit)="onNestedEdit($event)"
+        (delete)="onNestedDelete($event)"
+        (loadReplies)="onNestedLoadReplies($event)"
+      ></app-comment-item>
+    </div>
+  </mat-card>
+</div>

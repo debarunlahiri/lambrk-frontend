@@ -1,0 +1,116 @@
+<div class="page-container">
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading post...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !loading()" class="error-container">
+    <mat-card class="error-card">
+      <mat-icon>error_outline</mat-icon>
+      <h2>{{ error() }}</h2>
+      <button mat-raised-button color="primary" (click)="loadPost()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </mat-card>
+  </div>
+
+  <!-- Post Content -->
+  <div *ngIf="post() && !loading()" class="post-detail-container">
+    <!-- Post Card -->
+    <mat-card class="post-card">
+      <!-- Post Header -->
+      <div class="post-header">
+        <div class="subreddit-info">
+          <mat-icon>forum</mat-icon>
+          <span class="subreddit-name">r/{{ post()!.subreddit.name }}</span>
+          <span class="separator">•</span>
+          <span class="author">Posted by u/{{ post()!.author.username }}</span>
+          <span class="separator">•</span>
+          <span class="timestamp">{{ post()!.createdAt | timeAgo }}</span>
+        </div>
+      </div>
+
+      <!-- Post Title -->
+      <h1 class="post-title">{{ post()!.title }}</h1>
+
+      <!-- Post Flair & Tags -->
+      <div class="post-meta">
+        <mat-chip *ngIf="post()!.flairText" class="flair-chip">{{ post()!.flairText }}</mat-chip>
+        <mat-chip *ngIf="post()!.isOver18" class="nsfw-chip">NSFW</mat-chip>
+        <mat-chip *ngIf="post()!.isSpoiler" class="spoiler-chip">Spoiler</mat-chip>
+        <mat-chip *ngIf="post()!.isStickied" class="stickied-chip">Stickied</mat-chip>
+        <mat-chip *ngIf="post()!.isLocked" class="locked-chip">Locked</mat-chip>
+      </div>
+
+      <!-- Post Content -->
+      <div class="post-content">
+        <p>{{ post()!.content }}</p>
+      </div>
+
+
+
+      <!-- Post Footer -->
+      <div class="post-footer">
+        <!-- Voting -->
+        <div class="voting">
+          <button
+            mat-icon-button
+            (click)="votePost('upvote')"
+            class="vote-btn upvote"
+            [class.voted]="post()!.userVote === 'UPVOTE'"
+          >
+            <mat-icon>arrow_upward</mat-icon>
+          </button>
+          <span class="score">{{ post()!.score }}</span>
+          <button
+            mat-icon-button
+            (click)="votePost('downvote')"
+            class="vote-btn downvote"
+            [class.voted]="post()!.userVote === 'DOWNVOTE'"
+          >
+            <mat-icon>arrow_downward</mat-icon>
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="post-stats">
+          <div class="stat">
+            <mat-icon>comment</mat-icon>
+            <span>{{ post()!.commentCount || 0 }} comments</span>
+          </div>
+          <div class="stat" *ngIf="post()!.awardCount > 0">
+            <mat-icon>emoji_events</mat-icon>
+            <span>{{ post()!.awardCount }} awards</span>
+          </div>
+          <div class="stat">
+            <mat-icon>visibility</mat-icon>
+            <span>{{ post()!.viewCount }} views</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button mat-button>
+            <mat-icon>share</mat-icon>
+            Share
+          </button>
+          <button mat-button>
+            <mat-icon>bookmark_border</mat-icon>
+            Save
+          </button>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Comments Section -->
+    <div class="comments-container">
+      <app-comment-list
+        [postId]="postId"
+        [currentUserId]="currentUserId()"
+      ></app-comment-list>
+    </div>
+  </div>
+</div>

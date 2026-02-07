@@ -1,0 +1,87 @@
+<div class="comment-list-container">
+  <!-- New Comment Form -->
+  <mat-card class="new-comment-card">
+    <h3>Add a Comment</h3>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>What are your thoughts?</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="newCommentContent"
+        rows="4"
+        maxlength="10000"
+        placeholder="Share your thoughts..."
+        [disabled]="isSubmitting()"
+      ></textarea>
+      <mat-hint align="end">{{ newCommentContent().length }}/10000</mat-hint>
+    </mat-form-field>
+    <div class="submit-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="submitComment()"
+        [disabled]="!newCommentContent().trim() || isSubmitting()"
+      >
+        <mat-icon *ngIf="!isSubmitting()">send</mat-icon>
+        <mat-spinner *ngIf="isSubmitting()" diameter="20"></mat-spinner>
+        {{ isSubmitting() ? 'Posting...' : 'Comment' }}
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Comments Section -->
+  <div class="comments-section">
+    <div class="comments-header">
+      <h3>
+        <mat-icon>comment</mat-icon>
+        {{ totalElements() }} {{ totalElements() === 1 ? 'Comment' : 'Comments' }}
+      </h3>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="commentService.loading()" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading comments...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="commentService.error()" class="error-container">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ commentService.error() }}</p>
+      <button mat-raised-button color="primary" (click)="loadComments()">
+        Retry
+      </button>
+    </div>
+
+    <!-- Comments List -->
+    <div *ngIf="!commentService.loading() && !commentService.error()" class="comments-list">
+      <div *ngIf="comments().length === 0" class="no-comments">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <p>No comments yet. Be the first to comment!</p>
+      </div>
+
+      <app-comment-item
+        *ngFor="let comment of comments()"
+        [comment]="comment"
+        [currentUserId]="currentUserId"
+        [depth]="0"
+        (vote)="onVote($event)"
+        (reply)="onReply($event)"
+        (edit)="onEdit($event)"
+        (delete)="onDelete($event)"
+        (loadReplies)="onLoadReplies($event)"
+      ></app-comment-item>
+    </div>
+
+    <!-- Pagination -->
+    <mat-paginator
+      *ngIf="totalPages() > 1"
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="currentPage()"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    >
+    </mat-paginator>
+  </div>
+</div>

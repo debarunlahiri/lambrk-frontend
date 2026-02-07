@@ -1,0 +1,68 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+.nav-btn {
+  margin-left: 8px !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: #878a8c;
+  }
+
+  strong {
+    display: block;
+    font-size: 14px;
+  }
+
+  .karma-text {
+    font-size: 12px;
+    color: #878a8c;
+  }
+}
+
+.app-main {
+  min-height: calc(100vh - 64px);
+  background: #dae0e6;
+}

@@ -1,0 +1,269 @@
+.comment-container {
+  margin-bottom: 8px;
+
+  &.indent-0 { margin-left: 0; }
+  &.indent-1 { margin-left: 20px; }
+  &.indent-2 { margin-left: 40px; }
+  &.indent-3 { margin-left: 60px; }
+  &.indent-4 { margin-left: 80px; }
+  &.indent-5 { margin-left: 100px; }
+}
+
+.comment-card {
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-left: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-left-color: #ff4500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &.deleted {
+    opacity: 0.6;
+    background-color: #f5f5f5;
+  }
+
+  &.stickied {
+    background-color: #e8f5e9;
+    border-left-color: #4caf50;
+  }
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+
+  .username {
+    font-weight: 600;
+    color: #1a1a1b;
+  }
+
+  .display-name {
+    color: #7c7c7c;
+  }
+
+  .karma {
+    color: #ff4500;
+  }
+
+  .separator {
+    color: #ccc;
+  }
+
+  .edited {
+    font-style: italic;
+    color: #999;
+  }
+
+  .stickied-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #4caf50;
+  }
+}
+
+.comment-actions {
+  display: flex;
+  gap: 4px;
+
+  button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.comment-content {
+  margin-bottom: 12px;
+
+  .content-text {
+    .flair {
+      display: inline-block;
+      padding: 2px 8px;
+      margin-right: 8px;
+      background-color: #0079d3;
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 8px 0 0 0;
+      line-height: 1.5;
+      color: #1a1a1b;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  }
+}
+
+.comment-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.voting {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .vote-btn {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    transition: all 0.2s ease;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &.upvote {
+      &:hover, &.active {
+        color: #ff4500;
+      }
+    }
+
+    &.downvote {
+      &:hover, &.active {
+        color: #7193ff;
+      }
+    }
+  }
+
+  .score {
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 30px;
+    text-align: center;
+    color: #1a1a1b;
+
+    &.positive {
+      color: #ff4500;
+    }
+
+    &.negative {
+      color: #7193ff;
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  button {
+    font-size: 12px;
+    font-weight: 600;
+    color: #878a8c;
+    text-transform: uppercase;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+    }
+
+    &:hover {
+      color: #1a1a1b;
+    }
+  }
+
+  .replies-toggle {
+    color: #0079d3;
+
+    &:hover {
+      color: #005fa3;
+    }
+  }
+
+  .award-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffd700;
+    font-size: 12px;
+    font-weight: 600;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.edit-form,
+.reply-form {
+  margin-top: 12px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  textarea {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+.replies {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edeff1;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .comment-container {
+    &.indent-1 { margin-left: 12px; }
+    &.indent-2 { margin-left: 24px; }
+    &.indent-3 { margin-left: 36px; }
+    &.indent-4 { margin-left: 48px; }
+    &.indent-5 { margin-left: 60px; }
+  }
+
+  .comment-card {
+    padding: 10px 12px;
+  }
+
+  .author-info {
+    flex-wrap: wrap;
+    font-size: 11px;
+  }
+
+  .comment-footer {
+    flex-wrap: wrap;
+  }
+}

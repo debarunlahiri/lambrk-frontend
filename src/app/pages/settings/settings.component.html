@@ -1,0 +1,224 @@
+<div class="settings-container">
+  <!-- Settings Header -->
+  <div class="settings-header">
+    <h1>
+      <mat-icon>settings</mat-icon>
+      Settings
+    </h1>
+    <p>Manage your account preferences and settings</p>
+  </div>
+
+  <!-- Account Settings -->
+  <mat-card class="settings-card">
+    <div class="card-header">
+      <h2>
+        <mat-icon>account_circle</mat-icon>
+        Account
+      </h2>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="card-content">
+      <div class="setting-item" *ngIf="currentUser()">
+        <div class="setting-info">
+          <h3>Username</h3>
+          <p>{{ currentUser().username }}</p>
+        </div>
+      </div>
+      <div class="setting-item" *ngIf="currentUser()">
+        <div class="setting-info">
+          <h3>Display Name</h3>
+          <p>{{ currentUser().displayName || 'Not set' }}</p>
+        </div>
+      </div>
+      <div class="setting-item" *ngIf="currentUser()">
+        <div class="setting-info">
+          <h3>Karma</h3>
+          <p class="karma">{{ currentUser().karma }} points</p>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Appearance Settings -->
+  <mat-card class="settings-card">
+    <div class="card-header">
+      <h2>
+        <mat-icon>palette</mat-icon>
+        Appearance
+      </h2>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="card-content">
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Theme</h3>
+          <p>Choose your preferred theme</p>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-select
+            [(ngModel)]="settings().theme"
+            (ngModelChange)="onThemeChange($event)"
+          >
+            <mat-option value="light">Light</mat-option>
+            <mat-option value="dark">Dark</mat-option>
+            <mat-option value="auto">Auto (System)</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Language</h3>
+          <p>Select your preferred language</p>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-select
+            [(ngModel)]="settings().language"
+            (ngModelChange)="onLanguageChange($event)"
+          >
+            <mat-option *ngFor="let lang of languages" [value]="lang.value">
+              {{ lang.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Compact View</h3>
+          <p>Show posts in a more compact layout</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().compactView"
+          (ngModelChange)="onToggleChange('compactView', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Show Thumbnails</h3>
+          <p>Display image thumbnails in feed</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().showThumbnails"
+          (ngModelChange)="onToggleChange('showThumbnails', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Content Settings -->
+  <mat-card class="settings-card">
+    <div class="card-header">
+      <h2>
+        <mat-icon>visibility</mat-icon>
+        Content Preferences
+      </h2>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="card-content">
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>NSFW Content</h3>
+          <p>Show content marked as Not Safe For Work</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().nsfwEnabled"
+          (ngModelChange)="onToggleChange('nsfwEnabled', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Autoplay Videos</h3>
+          <p>Automatically play videos in feed</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().autoplayEnabled"
+          (ngModelChange)="onToggleChange('autoplayEnabled', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Notification Settings -->
+  <mat-card class="settings-card">
+    <div class="card-header">
+      <h2>
+        <mat-icon>notifications</mat-icon>
+        Notifications
+      </h2>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="card-content">
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Email Notifications</h3>
+          <p>Receive notifications via email</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().emailNotifications"
+          (ngModelChange)="onToggleChange('emailNotifications', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Push Notifications</h3>
+          <p>Receive browser push notifications</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().pushNotifications"
+          (ngModelChange)="onToggleChange('pushNotifications', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Comment Replies</h3>
+          <p>Get notified when someone replies to your comments</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().commentNotifications"
+          (ngModelChange)="onToggleChange('commentNotifications', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Post Updates</h3>
+          <p>Get notified about posts you're following</p>
+        </div>
+        <mat-slide-toggle
+          [(ngModel)]="settings().postNotifications"
+          (ngModelChange)="onToggleChange('postNotifications', $event)"
+          color="primary"
+        ></mat-slide-toggle>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Action Buttons -->
+  <div class="settings-actions">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="saveSettings()"
+      [disabled]="isSaving()"
+    >
+      <mat-icon>save</mat-icon>
+      {{ isSaving() ? 'Saving...' : 'Save Settings' }}
+    </button>
+    <button mat-stroked-button (click)="resetSettings()">
+      <mat-icon>restore</mat-icon>
+      Reset to Defaults
+    </button>
+  </div>
+</div>

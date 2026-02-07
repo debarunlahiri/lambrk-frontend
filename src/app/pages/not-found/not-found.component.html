@@ -1,0 +1,49 @@
+<div class="not-found-container">
+  <div class="not-found-content">
+    <!-- Animated Icon -->
+    <div class="icon-wrapper">
+      <mat-icon class="main-icon">search_off</mat-icon>
+      <div class="icon-circle"></div>
+    </div>
+
+    <!-- Error Code -->
+    <h1 class="error-code">404</h1>
+
+    <!-- Error Message -->
+    <h2 class="error-title">Page Not Found</h2>
+    <p class="error-message">
+      Sorry, the page you're looking for doesn't exist or has been moved.
+    </p>
+
+    <!-- Actions -->
+    <div class="actions">
+      <a mat-raised-button color="primary" routerLink="/">
+        <mat-icon>home</mat-icon>
+        Go to Home
+      </a>
+      <button mat-stroked-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Go Back
+      </button>
+    </div>
+
+    <!-- Helpful Links -->
+    <div class="helpful-links">
+      <h3>You might be interested in:</h3>
+      <div class="links">
+        <a mat-button routerLink="/search">
+          <mat-icon>search</mat-icon>
+          Search
+        </a>
+        <a mat-button routerLink="/create-post">
+          <mat-icon>add</mat-icon>
+          Create Post
+        </a>
+        <a mat-button routerLink="/settings">
+          <mat-icon>settings</mat-icon>
+          Settings
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,1 +1,222 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+// ── CSS Variables for Theming ──
+:root {
+  // Light theme (default)
+  --bg-primary: #dae0e6;
+  --bg-secondary: #f6f7f8;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --bg-input: #f6f7f8;
+
+  --text-primary: #1c1c1c;
+  --text-secondary: #7c7c7c;
+  --text-muted: #878a8c;
+  --text-inverse: #ffffff;
+
+  --border-color: #ccc;
+  --border-light: #edeff1;
+  --divider-color: #edeff1;
+
+  --accent-primary: #ff4500;
+  --accent-secondary: #0079d3;
+  --accent-hover: #ff5722;
+
+  --upvote-color: #ff4500;
+  --downvote-color: #7193ff;
+  --nsfw-color: #ff0000;
+  --spoiler-color: #000000;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 14px rgba(0, 0, 0, 0.15);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --font-family: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+// Dark theme
+.dark-theme {
+  --bg-primary: #0f1113;
+  --bg-secondary: #1a1a1b;
+  --bg-card: #1a1a1b;
+  --bg-header: #1a1a1b;
+  --bg-input: #272729;
+
+  --text-primary: #d7dadc;
+  --text-secondary: #818384;
+  --text-muted: #6a6c6d;
+  --text-inverse: #1a1a1b;
+
+  --border-color: #343536;
+  --border-light: #272729;
+  --divider-color: #343536;
+
+  --accent-primary: #ff4500;
+  --accent-secondary: #4fbcff;
+  --accent-hover: #ff5722;
+
+  --upvote-color: #ff4500;
+  --downvote-color: #7193ff;
+  --nsfw-color: #ff0000;
+  --spoiler-color: #000000;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+// Base styles
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--accent-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Material theme customization
+.light-theme {
+  @include mat.theme((
+    color: (
+      primary: mat.$blue-palette,
+      accent: mat.$orange-palette,
+      warn: mat.$red-palette,
+      theme-type: light
+    ),
+    typography: Roboto,
+    density: 0
+  ));
+}
+
+.dark-theme {
+  @include mat.theme((
+    color: (
+      primary: mat.$blue-palette,
+      accent: mat.$orange-palette,
+      warn: mat.$red-palette,
+      theme-type: dark
+    ),
+    typography: Roboto,
+    density: 0
+  ));
+
+  // Dark theme overrides for Material components
+  .mat-mdc-card {
+    background-color: var(--bg-card) !important;
+  }
+
+  .mat-mdc-button {
+    color: var(--text-primary);
+  }
+
+  .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: var(--bg-input);
+    --mdc-filled-text-field-label-text-color: var(--text-secondary);
+    --mdc-filled-text-field-input-text-color: var(--text-primary);
+  }
+}
+
+// ── Common component styles using CSS variables ──
+
+.card-base {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.input-base {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: border-color 0.2s ease, background-color 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-secondary);
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.divider {
+  border: none;
+  height: 1px;
+  background: var(--divider-color);
+  margin: 16px 0;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+

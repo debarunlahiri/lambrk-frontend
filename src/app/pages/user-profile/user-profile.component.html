@@ -1,0 +1,314 @@
+<div class="user-profile-container">
+  <!-- Loading State -->
+  <div *ngIf="loading() && !user()" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading profile...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !user()" class="error-container">
+    <mat-icon>person_off</mat-icon>
+    <h2>{{ error() }}</h2>
+    <p>The user u/{{ username() }} could not be found.</p>
+    <button mat-raised-button color="primary" routerLink="/">
+      <mat-icon>home</mat-icon>
+      Go Home
+    </button>
+  </div>
+
+  <!-- User Profile Content -->
+  <div *ngIf="user()" class="profile-content">
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="header-background"></div>
+      <div class="header-content">
+        <div class="avatar-section">
+          <div class="avatar">
+            <img *ngIf="user()!.avatarUrl" [src]="user()!.avatarUrl" [alt]="user()!.username" />
+            <mat-icon *ngIf="!user()!.avatarUrl">account_circle</mat-icon>
+          </div>
+        </div>
+
+        <div class="user-info">
+          <div class="username-section">
+            <h1>
+              u/{{ user()!.username }}
+              <mat-icon 
+                *ngIf="user()!.isVerified" 
+                class="verified-icon"
+                matTooltip="Verified User"
+              >
+                verified
+              </mat-icon>
+            </h1>
+            <p class="display-name" *ngIf="user()!.displayName">
+              {{ user()!.displayName }}
+            </p>
+          </div>
+
+          <div class="badges">
+            <mat-chip 
+              [style.background-color]="getKarmaLevel(user()!.karma).color"
+              class="karma-badge"
+              [matTooltip]="getKarmaLevel(user()!.karma).level + ' User'"
+            >
+              <mat-icon>{{ getKarmaLevel(user()!.karma).icon }}</mat-icon>
+              {{ getKarmaLevel(user()!.karma).level }}
+            </mat-chip>
+            <mat-chip *ngIf="user()!.isActive" class="active-badge">
+              <mat-icon>circle</mat-icon>
+              Active
+            </mat-chip>
+          </div>
+
+          <p class="bio" *ngIf="user()!.bio">{{ user()!.bio }}</p>
+
+          <div class="actions">
+            <button 
+              *ngIf="isOwnProfile()" 
+              mat-raised-button 
+              color="primary"
+              (click)="editProfile()"
+            >
+              <mat-icon>edit</mat-icon>
+              Edit Profile
+            </button>
+            <button 
+              *ngIf="!isOwnProfile()" 
+              mat-raised-button 
+              color="primary"
+            >
+              <mat-icon>person_add</mat-icon>
+              Follow
+            </button>
+            <button 
+              *ngIf="!isOwnProfile()" 
+              mat-stroked-button
+            >
+              <mat-icon>mail</mat-icon>
+              Message
+            </button>
+            <button mat-icon-button [matMenuTriggerFor]="menu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item *ngIf="!isOwnProfile()">
+                <mat-icon>block</mat-icon>
+                <span>Block User</span>
+              </button>
+              <button mat-menu-item *ngIf="!isOwnProfile()">
+                <mat-icon>flag</mat-icon>
+                <span>Report User</span>
+              </button>
+              <button mat-menu-item>
+                <mat-icon>share</mat-icon>
+                <span>Share Profile</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat">
+        <mat-icon>emoji_events</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ formatKarma(user()!.karma) }}</span>
+          <span class="stat-label">Karma</span>
+        </div>
+      </div>
+      <div class="stat">
+        <mat-icon>article</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ userPosts().length }}</span>
+          <span class="stat-label">Posts</span>
+        </div>
+      </div>
+      <div class="stat">
+        <mat-icon>calendar_today</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ getMemberSince(user()!.createdAt) }}</span>
+          <span class="stat-label">Member Since</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Posts Section -->
+      <div class="posts-section">
+        <mat-tab-group [(selectedIndex)]="activeTab">
+          <!-- Posts Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>article</mat-icon>
+              Posts ({{ userPosts().length }})
+            </ng-template>
+
+            <div class="tab-content">
+              <div class="posts-list">
+                <mat-card
+                  *ngFor="let post of userPosts()"
+                  class="post-card"
+                  (click)="navigateToPost(post.id)"
+                >
+                  <div class="post-header">
+                    <span class="subreddit" (click)="navigateToSubreddit(post.subreddit.name); $event.stopPropagation()">
+                      r/{{ post.subreddit.name }}
+                    </span>
+                    <span class="separator">•</span>
+                    <span class="time">{{ getTimeAgo(post.createdAt) }}</span>
+                    <mat-chip *ngIf="post.flairText" class="flair-chip">
+                      {{ post.flairText }}
+                    </mat-chip>
+                  </div>
+
+                  <h3 class="post-title">{{ post.title }}</h3>
+                  <p class="post-content" *ngIf="post.content">{{ post.content }}</p>
+
+                  <div class="post-footer">
+                    <span class="stat">
+                      <mat-icon>arrow_upward</mat-icon>
+                      {{ formatNumber(post.score) }}
+                    </span>
+                    <span class="stat">
+                      <mat-icon>comment</mat-icon>
+                      {{ formatNumber(post.commentCount) }}
+                    </span>
+                    <span class="stat" *ngIf="post.awardCount > 0">
+                      <mat-icon>emoji_events</mat-icon>
+                      {{ post.awardCount }}
+                    </span>
+                  </div>
+                </mat-card>
+
+                <!-- Empty State -->
+                <div *ngIf="userPosts().length === 0" class="empty-state">
+                  <mat-icon>inbox</mat-icon>
+                  <h3>No posts yet</h3>
+                  <p *ngIf="isOwnProfile()">You haven't created any posts yet.</p>
+                  <p *ngIf="!isOwnProfile()">This user hasn't created any posts yet.</p>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Comments Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>comment</mat-icon>
+              Comments
+            </ng-template>
+
+            <div class="tab-content">
+              <div class="empty-state">
+                <mat-icon>comment</mat-icon>
+                <h3>Comments</h3>
+                <p>Comment history will be displayed here.</p>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Saved Tab (Own Profile Only) -->
+          <mat-tab *ngIf="isOwnProfile()">
+            <ng-template mat-tab-label>
+              <mat-icon>bookmark</mat-icon>
+              Saved
+            </ng-template>
+
+            <div class="tab-content">
+              <div class="empty-state">
+                <mat-icon>bookmark</mat-icon>
+                <h3>Saved Posts</h3>
+                <p>Your saved posts will appear here.</p>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Upvoted Tab (Own Profile Only) -->
+          <mat-tab *ngIf="isOwnProfile()">
+            <ng-template mat-tab-label>
+              <mat-icon>arrow_upward</mat-icon>
+              Upvoted
+            </ng-template>
+
+            <div class="tab-content">
+              <div class="empty-state">
+                <mat-icon>arrow_upward</mat-icon>
+                <h3>Upvoted Posts</h3>
+                <p>Posts you've upvoted will appear here.</p>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Karma Card -->
+        <mat-card class="karma-card">
+          <h3>Karma</h3>
+          <div class="karma-display">
+            <mat-icon [style.color]="getKarmaLevel(user()!.karma).color">
+              {{ getKarmaLevel(user()!.karma).icon }}
+            </mat-icon>
+            <div class="karma-info">
+              <span class="karma-value">{{ formatKarma(user()!.karma) }}</span>
+              <span class="karma-level">{{ getKarmaLevel(user()!.karma).level }}</span>
+            </div>
+          </div>
+          <p class="karma-description">
+            Karma is earned when your posts and comments are upvoted by other users.
+          </p>
+        </mat-card>
+
+        <!-- Account Info Card -->
+        <mat-card class="info-card">
+          <h3>Account Info</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <mat-icon>cake</mat-icon>
+              <div>
+                <strong>Cake Day</strong>
+                <span>{{ getMemberSince(user()!.createdAt) }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon>emoji_events</mat-icon>
+              <div>
+                <strong>Total Karma</strong>
+                <span>{{ formatKarma(user()!.karma) }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <mat-icon>article</mat-icon>
+              <div>
+                <strong>Posts</strong>
+                <span>{{ userPosts().length }}</span>
+              </div>
+            </div>
+            <div class="info-item" *ngIf="user()!.isVerified">
+              <mat-icon>verified</mat-icon>
+              <div>
+                <strong>Verified</strong>
+                <span>This user is verified</span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+
+        <!-- Activity Status Card -->
+        <mat-card class="status-card" *ngIf="user()!.isActive">
+          <h3>Activity Status</h3>
+          <div class="status-indicator">
+            <mat-icon class="active-icon">circle</mat-icon>
+            <span>Active User</span>
+          </div>
+          <p>This user is currently active on the platform.</p>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

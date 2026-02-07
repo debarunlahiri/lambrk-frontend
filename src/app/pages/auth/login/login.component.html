@@ -1,0 +1,87 @@
+<div class="auth-container">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="logo-section">
+          <mat-icon class="logo-icon">chat</mat-icon>
+          <h1>Log In</h1>
+        </div>
+      </mat-card-title>
+      <mat-card-subtitle>Welcome back to Lambrk</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Server error banner -->
+      @if (authService.error(); as errorMsg) {
+        <div class="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMsg }}</span>
+        </div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Username -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+          <mat-icon matPrefix>person</mat-icon>
+          @if (loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched) {
+            <mat-error>Username is required</mat-error>
+          }
+          @if (loginForm.get('username')?.hasError('minlength') && loginForm.get('username')?.touched) {
+            <mat-error>At least 3 characters</mat-error>
+          }
+          @if (getFieldError('username')) {
+            <mat-error>{{ getFieldError('username') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Password -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            formControlName="password"
+            [type]="hidePassword() ? 'password' : 'text'"
+            autocomplete="current-password"
+          />
+          <mat-icon matPrefix>lock</mat-icon>
+          <button mat-icon-button matSuffix type="button" (click)="togglePassword()">
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+            <mat-error>Password is required</mat-error>
+          }
+          @if (loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched) {
+            <mat-error>At least 8 characters</mat-error>
+          }
+          @if (getFieldError('password')) {
+            <mat-error>{{ getFieldError('password') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Submit -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="authService.loading()"
+        >
+          @if (authService.loading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            Log In
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <span class="auth-link-text">
+        New to Lambrk?
+        <a routerLink="/auth/register" class="auth-link">Sign Up</a>
+      </span>
+    </mat-card-actions>
+  </mat-card>
+</div>

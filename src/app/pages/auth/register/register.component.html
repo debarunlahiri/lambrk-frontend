@@ -1,0 +1,136 @@
+<div class="auth-container">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="logo-section">
+          <mat-icon class="logo-icon">chat</mat-icon>
+          <h1>Sign Up</h1>
+        </div>
+      </mat-card-title>
+      <mat-card-subtitle>Create your Lambrk account</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (authService.error(); as errorMsg) {
+        <div class="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMsg }}</span>
+        </div>
+      }
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Username -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+          <mat-icon matPrefix>person</mat-icon>
+          @if (registerForm.get('username')?.hasError('required') && registerForm.get('username')?.touched) {
+            <mat-error>Username is required</mat-error>
+          }
+          @if (registerForm.get('username')?.hasError('minlength') && registerForm.get('username')?.touched) {
+            <mat-error>At least 3 characters</mat-error>
+          }
+          @if (registerForm.get('username')?.hasError('maxlength') && registerForm.get('username')?.touched) {
+            <mat-error>Maximum 50 characters</mat-error>
+          }
+          @if (getFieldError('username')) {
+            <mat-error>{{ getFieldError('username') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" autocomplete="email" />
+          <mat-icon matPrefix>email</mat-icon>
+          @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+            <mat-error>Email is required</mat-error>
+          }
+          @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+            <mat-error>Enter a valid email</mat-error>
+          }
+          @if (getFieldError('email')) {
+            <mat-error>{{ getFieldError('email') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Display Name (optional) -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Display Name (optional)</mat-label>
+          <input matInput formControlName="displayName" />
+          <mat-icon matPrefix>badge</mat-icon>
+        </mat-form-field>
+
+        <!-- Password -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            formControlName="password"
+            [type]="hidePassword() ? 'password' : 'text'"
+            autocomplete="new-password"
+          />
+          <mat-icon matPrefix>lock</mat-icon>
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())">
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+            <mat-error>Password is required</mat-error>
+          }
+          @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+            <mat-error>At least 8 characters</mat-error>
+          }
+          @if (getFieldError('password')) {
+            <mat-error>{{ getFieldError('password') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Confirm Password -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input
+            matInput
+            formControlName="confirmPassword"
+            [type]="hideConfirm() ? 'password' : 'text'"
+            autocomplete="new-password"
+          />
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button mat-icon-button matSuffix type="button" (click)="hideConfirm.set(!hideConfirm())">
+            <mat-icon>{{ hideConfirm() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (registerForm.get('confirmPassword')?.hasError('required') && registerForm.get('confirmPassword')?.touched) {
+            <mat-error>Please confirm your password</mat-error>
+          }
+          @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
+            <mat-error>Passwords do not match</mat-error>
+          }
+          @if (getFieldError('confirmPassword')) {
+            <mat-error>{{ getFieldError('confirmPassword') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Submit -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="authService.loading()"
+        >
+          @if (authService.loading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            Sign Up
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <span class="auth-link-text">
+        Already on Lambrk?
+        <a routerLink="/auth/login" class="auth-link">Log In</a>
+      </span>
+    </mat-card-actions>
+  </mat-card>
+</div>

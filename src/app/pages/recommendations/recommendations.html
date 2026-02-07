@@ -1,0 +1,341 @@
+<div class="recommendations-container">
+  <!-- Header -->
+  <div class="recommendations-header">
+    <h1>
+      <mat-icon>auto_awesome</mat-icon>
+      Recommendations For You
+    </h1>
+    <button mat-icon-button (click)="refresh()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Confidence & Explanation Card -->
+  <mat-card class="info-card" *ngIf="recommendations() && !loading()">
+    <div class="confidence-section">
+      <div class="confidence-badge" [style.background-color]="getConfidenceLevel(recommendations()!.confidence).color">
+        <mat-icon>psychology</mat-icon>
+        <span>{{ getConfidenceLevel(recommendations()!.confidence).label }} Confidence</span>
+        <span class="confidence-value">{{ (recommendations()!.confidence * 100).toFixed(0) }}%</span>
+      </div>
+    </div>
+
+    <div class="explanation-section">
+      <h3>
+        <mat-icon>lightbulb</mat-icon>
+        Why these recommendations?
+      </h3>
+      <p>{{ recommendations()!.explanation }}</p>
+    </div>
+
+    <div class="factors-section">
+      <h4>Factors considered:</h4>
+      <div class="factors-chips">
+        <mat-chip *ngFor="let factor of recommendations()!.factors">
+          <mat-icon>check_circle</mat-icon>
+          {{ factor }}
+        </mat-chip>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Tabs -->
+  <mat-tab-group [(selectedIndex)]="activeTab" (selectedIndexChange)="onTabChange($event)">
+    <!-- Posts Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>article</mat-icon>
+        Posts
+        <span class="tab-count" *ngIf="recommendations()">
+          ({{ recommendations()!.posts.length }})
+        </span>
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading -->
+        <div *ngIf="loading()" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Finding posts you'll love...</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error() && !loading()" class="error-container">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ error() }}</p>
+          <button mat-raised-button color="primary" (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </div>
+
+        <!-- Posts List -->
+        <div *ngIf="!loading() && !error() && recommendations()" class="recommendations-list">
+          <mat-card
+            *ngFor="let post of recommendations()!.posts"
+            class="recommendation-card post-card"
+            (click)="navigateToPost(post.id)"
+          >
+            <div class="card-header">
+              <span class="subreddit">r/{{ post.subreddit.name }}</span>
+              <span class="separator">•</span>
+              <span class="author">u/{{ post.author.username }}</span>
+              <span class="separator">•</span>
+              <span class="time">{{ getTimeAgo(post.createdAt) }}</span>
+            </div>
+
+            <h3 class="post-title">{{ post.title }}</h3>
+            <p class="post-content" *ngIf="post.content">{{ post.content }}</p>
+
+            <div class="card-footer">
+              <span class="stat">
+                <mat-icon>arrow_upward</mat-icon>
+                {{ formatNumber(post.score) }}
+              </span>
+              <span class="stat">
+                <mat-icon>comment</mat-icon>
+                {{ formatNumber(post.commentCount) }}
+              </span>
+            </div>
+          </mat-card>
+
+          <!-- Empty State -->
+          <div *ngIf="recommendations()!.posts.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>No post recommendations yet</h3>
+            <p>Start interacting with posts to get personalized recommendations</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Subreddits Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>forum</mat-icon>
+        Communities
+        <span class="tab-count" *ngIf="recommendations()">
+          ({{ recommendations()!.subreddits.length }})
+        </span>
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading -->
+        <div *ngIf="loading()" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Finding communities you'll enjoy...</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error() && !loading()" class="error-container">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ error() }}</p>
+          <button mat-raised-button color="primary" (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </div>
+
+        <!-- Subreddits List -->
+        <div *ngIf="!loading() && !error() && recommendations()" class="recommendations-list">
+          <mat-card
+            *ngFor="let subreddit of recommendations()!.subreddits"
+            class="recommendation-card subreddit-card"
+            (click)="navigateToSubreddit(subreddit.name)"
+          >
+            <div class="subreddit-header">
+              <div class="subreddit-icon">
+                <mat-icon>forum</mat-icon>
+              </div>
+              <div class="subreddit-info">
+                <h3>r/{{ subreddit.name }}</h3>
+                <p class="subreddit-title">{{ subreddit.title }}</p>
+              </div>
+              <button
+                mat-raised-button
+                color="primary"
+                *ngIf="!subreddit.isUserSubscribed"
+                (click)="$event.stopPropagation()"
+              >
+                Join
+              </button>
+              <button
+                mat-stroked-button
+                *ngIf="subreddit.isUserSubscribed"
+                (click)="$event.stopPropagation()"
+              >
+                Joined
+              </button>
+            </div>
+
+            <p class="subreddit-description">{{ subreddit.description }}</p>
+
+            <div class="subreddit-stats">
+              <span class="stat">
+                <mat-icon>people</mat-icon>
+                {{ formatNumber(subreddit.memberCount) }} members
+              </span>
+              <mat-chip *ngIf="subreddit.isUserModerator" class="moderator-chip">
+                <mat-icon>shield</mat-icon>
+                Moderator
+              </mat-chip>
+            </div>
+          </mat-card>
+
+          <!-- Empty State -->
+          <div *ngIf="recommendations()!.subreddits.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>No community recommendations yet</h3>
+            <p>Join some communities to get personalized recommendations</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Users Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>person</mat-icon>
+        Users
+        <span class="tab-count" *ngIf="recommendations()">
+          ({{ recommendations()!.users.length }})
+        </span>
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading -->
+        <div *ngIf="loading()" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Finding users with similar interests...</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error() && !loading()" class="error-container">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ error() }}</p>
+          <button mat-raised-button color="primary" (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </div>
+
+        <!-- Users List -->
+        <div *ngIf="!loading() && !error() && recommendations()" class="recommendations-list">
+          <mat-card
+            *ngFor="let user of recommendations()!.users"
+            class="recommendation-card user-card"
+            (click)="navigateToUser(user.username)"
+          >
+            <div class="user-header">
+              <div class="user-avatar">
+                <mat-icon>account_circle</mat-icon>
+              </div>
+              <div class="user-info">
+                <h3>
+                  u/{{ user.username }}
+                  <mat-icon *ngIf="user.isVerified" class="verified-icon" matTooltip="Verified">
+                    verified
+                  </mat-icon>
+                </h3>
+                <p class="user-display-name">{{ user.displayName }}</p>
+              </div>
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="$event.stopPropagation()"
+              >
+                Follow
+              </button>
+            </div>
+
+            <div class="user-stats">
+              <span class="stat">
+                <mat-icon>emoji_events</mat-icon>
+                {{ formatNumber(user.karma) }} karma
+              </span>
+              <mat-chip *ngIf="user.isActive" class="active-chip">
+                <mat-icon>circle</mat-icon>
+                Active
+              </mat-chip>
+            </div>
+          </mat-card>
+
+          <!-- Empty State -->
+          <div *ngIf="recommendations()!.users.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>No user recommendations yet</h3>
+            <p>Interact with more users to get personalized recommendations</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Trending Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>trending_up</mat-icon>
+        Trending
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Loading -->
+        <div *ngIf="loading()" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading trending content...</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error() && !loading()" class="error-container">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ error() }}</p>
+          <button mat-raised-button color="primary" (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </div>
+
+        <!-- Trending Posts -->
+        <div *ngIf="!loading() && !error() && recommendations()" class="recommendations-list">
+          <mat-card
+            *ngFor="let post of recommendations()!.posts"
+            class="recommendation-card post-card trending-card"
+            (click)="navigateToPost(post.id)"
+          >
+            <mat-chip class="trending-badge">
+              <mat-icon>local_fire_department</mat-icon>
+              Trending
+            </mat-chip>
+
+            <div class="card-header">
+              <span class="subreddit">r/{{ post.subreddit.name }}</span>
+              <span class="separator">•</span>
+              <span class="author">u/{{ post.author.username }}</span>
+              <span class="separator">•</span>
+              <span class="time">{{ getTimeAgo(post.createdAt) }}</span>
+            </div>
+
+            <h3 class="post-title">{{ post.title }}</h3>
+            <p class="post-content" *ngIf="post.content">{{ post.content }}</p>
+
+            <div class="card-footer">
+              <span class="stat">
+                <mat-icon>arrow_upward</mat-icon>
+                {{ formatNumber(post.score) }}
+              </span>
+              <span class="stat">
+                <mat-icon>comment</mat-icon>
+                {{ formatNumber(post.commentCount) }}
+              </span>
+            </div>
+          </mat-card>
+
+          <!-- Empty State -->
+          <div *ngIf="recommendations()!.posts.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <h3>No trending content right now</h3>
+            <p>Check back later for trending posts</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

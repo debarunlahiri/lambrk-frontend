@@ -1,0 +1,88 @@
+@if (notifications().length > 0) {
+  <div class="notifications-container">
+    <!-- Clear all button -->
+    <button mat-icon-button class="clear-all-btn" (click)="clearAll()" aria-label="Clear all notifications">
+      <mat-icon>clear_all</mat-icon>
+    </button>
+
+    <!-- Error notifications -->
+    @for (notification of errorNotifications(); track notification.id) {
+      <mat-card class="notification error">
+        <mat-card-header class="notification-header">
+          <mat-icon matCardIcon>{{ getIcon(notification.type) }}</mat-icon>
+          <mat-card-title>{{ notification.title }}</mat-card-title>
+          <button mat-icon-button class="close-btn" (click)="removeNotification(notification.id)" aria-label="Close">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="error-message">{{ notification.message }}</p>
+          
+          <!-- Field errors for validation failures -->
+          @if (hasFieldErrors(notification)) {
+            <div class="field-errors">
+              <h4>Validation Errors:</h4>
+              @for (error of getFieldErrors(notification); track error.field) {
+                <div class="field-error">
+                  <strong>{{ error.field }}:</strong> {{ error.message }}
+                </div>
+              }
+            </div>
+          }
+          
+          <!-- Content moderation violations -->
+          @if (hasViolationCategories(notification)) {
+            <div class="violation-categories">
+              <h4>Content Violations:</h4>
+              @for (category of getViolationCategories(notification); track category) {
+                <span class="violation-tag">{{ formatViolationCategory(category) }}</span>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Warning notifications -->
+    @for (notification of warningNotifications(); track notification.id) {
+      <mat-card class="notification warning">
+        <mat-card-header class="notification-header">
+          <mat-icon matCardIcon>{{ getIcon(notification.type) }}</mat-icon>
+          <mat-card-title>{{ notification.title }}</mat-card-title>
+          <button mat-icon-button class="close-btn" (click)="removeNotification(notification.id)" aria-label="Close">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ notification.message }}</p>
+          
+          <!-- Content moderation violations -->
+          @if (hasViolationCategories(notification)) {
+            <div class="violation-categories">
+              <h4>Content Violations:</h4>
+              @for (category of getViolationCategories(notification); track category) {
+                <span class="violation-tag">{{ formatViolationCategory(category) }}</span>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Info notifications -->
+    @for (notification of infoNotifications(); track notification.id) {
+      <mat-card class="notification info">
+        <mat-card-header class="notification-header">
+          <mat-icon matCardIcon>{{ getIcon(notification.type) }}</mat-icon>
+          <mat-card-title>{{ notification.title }}</mat-card-title>
+          <button mat-icon-button class="close-btn" (click)="removeNotification(notification.id)" aria-label="Close">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ notification.message }}</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

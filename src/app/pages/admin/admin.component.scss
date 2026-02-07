@@ -1,0 +1,153 @@
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+  background: #f6f7f8;
+}
+
+.admin-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1b;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #ff4500;
+  }
+}
+
+.tab-content {
+  padding: 24px 0;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+
+  @media (max-width: 968px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.action-form-card,
+.recent-actions-card,
+.audit-log-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.checkbox-field {
+  display: block;
+  margin: 12px 0;
+}
+
+.form-actions {
+  margin-top: 24px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-weight: 600;
+
+    mat-icon {
+      margin: 0;
+    }
+  }
+}
+
+.empty-recent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #7c7c7c;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    color: #d7dadc;
+  }
+}
+
+.action-details {
+  padding: 16px;
+
+  p {
+    margin: 8px 0;
+    color: #1a1a1b;
+    line-height: 1.5;
+
+    strong {
+      color: #7c7c7c;
+      font-weight: 600;
+    }
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+
+  p {
+    margin-top: 16px;
+    color: #7c7c7c;
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+
+  th {
+    font-weight: 600;
+    color: #1a1a1b;
+    background: #f6f7f8;
+  }
+
+  td {
+    color: #1a1a1b;
+  }
+
+  .reason-cell {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+mat-chip {
+  font-size: 12px;
+  font-weight: 600;
+  height: 28px;
+}
+
+mat-paginator {
+  margin-top: 16px;
+  background: transparent;
+}

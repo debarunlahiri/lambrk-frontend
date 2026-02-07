@@ -1,0 +1,328 @@
+<div class="search-container">
+  <!-- Search Header -->
+  <div class="search-header">
+    <h1>
+      <mat-icon>search</mat-icon>
+      Search
+    </h1>
+  </div>
+
+  <!-- Search Bar with Autocomplete -->
+  <mat-card class="search-card">
+    <div class="search-input-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search for posts, comments, communities...</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchInput($event)"
+          (keyup.enter)="onSearch()"
+          [matAutocomplete]="auto"
+          placeholder="Search Lambrk, what are you looking for?"
+          autocomplete="off"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          *ngIf="searchQuery()"
+          (click)="clearSearch()"
+        >
+          <mat-icon>clear</mat-icon>
+        </button>
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSuggestionClick($event.option.value)">
+          <mat-option *ngFor="let suggestion of suggestions()" [value]="suggestion">
+            <mat-icon>search</mat-icon>
+            {{ suggestion }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSearch()"
+        [disabled]="!searchQuery().trim() || isSearching()"
+        class="search-button"
+      >
+        <mat-icon>search</mat-icon>
+        Search
+      </button>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="search-filters" *ngIf="searchQuery()">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Type</mat-label>
+        <mat-select [(ngModel)]="searchType">
+          <mat-option *ngFor="let type of searchTypes" [value]="type">
+            {{ getTypeLabel(type) }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Sort</mat-label>
+        <mat-select [(ngModel)]="sortBy">
+          <mat-option *ngFor="let sort of sortOptions" [value]="sort">
+            {{ getSortLabel(sort) }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Time</mat-label>
+        <mat-select [(ngModel)]="timeFilter">
+          <mat-option *ngFor="let filter of timeFilters" [value]="filter">
+            {{ getTimeFilterLabel(filter) }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button (click)="clearFilters()" class="clear-filters-btn">
+        <mat-icon>filter_list_off</mat-icon>
+        Clear Filters
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Search Metadata -->
+  <div class="search-metadata" *ngIf="results() && !isSearching()">
+    <div class="metadata-info">
+      <span class="results-count">
+        {{ results()!.metadata.totalResults }} results found
+      </span>
+      <span class="search-time">
+        ({{ results()!.metadata.searchTimeMs }}ms)
+      </span>
+    </div>
+    <div class="suggestions-chips" *ngIf="results()!.metadata.suggestions.length > 0">
+      <span class="suggestions-label">Related:</span>
+      <mat-chip-set>
+        <mat-chip *ngFor="let suggestion of results()!.metadata.suggestions" (click)="onQuickSearch(suggestion)">
+          {{ suggestion }}
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </div>
+
+  <!-- Recent & Popular Searches -->
+  <div class="quick-searches" *ngIf="!searchQuery() && !results()">
+    <!-- Recent Searches -->
+    <mat-card class="quick-search-card" *ngIf="recentSearches().length > 0">
+      <div class="card-header">
+        <h3>
+          <mat-icon>history</mat-icon>
+          Recent Searches
+        </h3>
+        <button mat-button (click)="clearRecentSearches()">
+          <mat-icon>delete_sweep</mat-icon>
+          Clear All
+        </button>
+      </div>
+      <div class="search-chips">
+        <mat-chip-set>
+          <mat-chip *ngFor="let search of recentSearches()">
+            <span (click)="onQuickSearch(search)">{{ search }}</span>
+            <button matChipRemove (click)="removeRecentSearch(search)">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </mat-card>
+
+    <!-- Popular Searches -->
+    <mat-card class="quick-search-card">
+      <div class="card-header">
+        <h3>
+          <mat-icon>trending_up</mat-icon>
+          Popular Searches
+        </h3>
+      </div>
+      <div class="search-chips">
+        <mat-chip-set>
+          <mat-chip
+            *ngFor="let search of popularSearches()"
+            (click)="onQuickSearch(search)"
+          >
+            {{ search }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Search Results -->
+  <div class="search-results" *ngIf="searchQuery() && (hasResults() || isSearching())">
+    <!-- Loading -->
+    <div *ngIf="isSearching()" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Searching...</p>
+    </div>
+
+    <!-- Results -->
+    <div *ngIf="!isSearching() && results()" class="results-container">
+      <!-- Posts -->
+      <div *ngIf="results()!.posts.length > 0" class="results-section">
+        <h2 class="section-title">
+          <mat-icon>article</mat-icon>
+          Posts ({{ results()!.posts.length }})
+        </h2>
+        <div class="results-list">
+          <mat-card
+            *ngFor="let post of results()!.posts"
+            class="result-card post-card"
+            (click)="navigateToPost(post.id)"
+          >
+            <div class="result-header">
+              <span class="subreddit">r/{{ post.subreddit.name }}</span>
+              <span class="separator">•</span>
+              <span class="author">u/{{ post.author.username }}</span>
+              <span class="separator">•</span>
+              <span class="time">{{ getTimeAgo(post.createdAt) }}</span>
+            </div>
+            <h3 class="result-title">{{ post.title }}</h3>
+            <p class="result-content" *ngIf="post.content">{{ post.content }}</p>
+            <div class="result-footer">
+              <span class="stat">
+                <mat-icon>arrow_upward</mat-icon>
+                {{ formatNumber(post.score) }}
+              </span>
+              <span class="stat">
+                <mat-icon>comment</mat-icon>
+                {{ formatNumber(post.commentCount) }}
+              </span>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div *ngIf="results()!.comments.length > 0" class="results-section">
+        <h2 class="section-title">
+          <mat-icon>comment</mat-icon>
+          Comments ({{ results()!.comments.length }})
+        </h2>
+        <div class="results-list">
+          <mat-card
+            *ngFor="let comment of results()!.comments"
+            class="result-card comment-card"
+          >
+            <div class="result-header">
+              <span class="author">u/{{ comment.author.username }}</span>
+              <span class="separator">•</span>
+              <span class="time">{{ getTimeAgo(comment.createdAt) }}</span>
+            </div>
+            <p class="result-content">{{ comment.content }}</p>
+            <div class="result-footer">
+              <span class="stat">
+                <mat-icon>arrow_upward</mat-icon>
+                {{ formatNumber(comment.score) }}
+              </span>
+              <button mat-button (click)="navigateToPost(comment.postId)">
+                <mat-icon>open_in_new</mat-icon>
+                View Post
+              </button>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div *ngIf="results()!.users.length > 0" class="results-section">
+        <h2 class="section-title">
+          <mat-icon>person</mat-icon>
+          Users ({{ results()!.users.length }})
+        </h2>
+        <div class="results-list">
+          <mat-card
+            *ngFor="let user of results()!.users"
+            class="result-card user-card"
+            (click)="navigateToUser(user.username)"
+          >
+            <div class="user-info">
+              <div class="user-avatar">
+                <mat-icon>account_circle</mat-icon>
+              </div>
+              <div class="user-details">
+                <h3>
+                  u/{{ user.username }}
+                  <mat-icon *ngIf="user.isVerified" class="verified-icon">verified</mat-icon>
+                </h3>
+                <p>{{ user.displayName }}</p>
+              </div>
+            </div>
+            <div class="user-stats">
+              <span class="stat">
+                <mat-icon>emoji_events</mat-icon>
+                {{ formatNumber(user.karma) }} karma
+              </span>
+              <mat-chip *ngIf="user.isActive" class="active-chip">Active</mat-chip>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Subreddits -->
+      <div *ngIf="results()!.subreddits.length > 0" class="results-section">
+        <h2 class="section-title">
+          <mat-icon>forum</mat-icon>
+          Communities ({{ results()!.subreddits.length }})
+        </h2>
+        <div class="results-list">
+          <mat-card
+            *ngFor="let subreddit of results()!.subreddits"
+            class="result-card subreddit-card"
+            (click)="navigateToSubreddit(subreddit.name)"
+          >
+            <div class="subreddit-info">
+              <div class="subreddit-icon">
+                <mat-icon>forum</mat-icon>
+              </div>
+              <div class="subreddit-details">
+                <h3>r/{{ subreddit.name }}</h3>
+                <p class="subreddit-title">{{ subreddit.title }}</p>
+                <p class="subreddit-description">{{ subreddit.description }}</p>
+              </div>
+            </div>
+            <div class="subreddit-stats">
+              <span class="stat">
+                <mat-icon>people</mat-icon>
+                {{ formatNumber(subreddit.memberCount) }} members
+              </span>
+              <button
+                mat-raised-button
+                color="primary"
+                *ngIf="!subreddit.isUserSubscribed"
+                (click)="$event.stopPropagation()"
+              >
+                Join
+              </button>
+              <button
+                mat-stroked-button
+                *ngIf="subreddit.isUserSubscribed"
+                (click)="$event.stopPropagation()"
+              >
+                Joined
+              </button>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!hasResults()" class="no-results">
+        <mat-icon>search_off</mat-icon>
+        <h3>No results found for "{{ searchQuery() }}"</h3>
+        <p>Try different keywords or check your spelling</p>
+        <div class="suggestions" *ngIf="results()!.metadata.suggestions.length > 0">
+          <p>Try searching for:</p>
+          <mat-chip-set>
+            <mat-chip *ngFor="let suggestion of results()!.metadata.suggestions" (click)="onQuickSearch(suggestion)">
+              {{ suggestion }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
