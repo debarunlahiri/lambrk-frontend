@@ -48,7 +48,6 @@ reddit-frontend/
 │   ├── environments/          # Environment configs
 │   └── styles.scss            # Global styles with themes
 ├── docs/                       # Documentation
-├── .windsurf/                  # IDE rules
 └── angular.json               # Angular CLI config
 ```
 
@@ -172,11 +171,10 @@ See [docs/development.md](docs/development.md) for:
 
 ## Contributing
 
-1. Follow the [Windsurf guidelines](.windsurf/rules/guidelines.md)
-2. Use standalone components
-3. Prefer signals over observables for state
-4. Ensure WCAG AA accessibility compliance
-5. Write clean, typed TypeScript
+1. Use standalone components
+2. Prefer signals over observables for state
+3. Ensure WCAG AA accessibility compliance
+4. Write clean, typed TypeScript
 
 ## License
 
