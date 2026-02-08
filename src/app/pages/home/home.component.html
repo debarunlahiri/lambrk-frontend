@@ -16,6 +16,7 @@
     <!-- Sort Bar -->
     <div class="sort-filter-bar">
       <div class="sort-options">
+        <button mat-button [class.active]="selectedSort() === 'algorithm'" (click)="onSortChange('algorithm')">Best</button>
         <button mat-button [class.active]="selectedSort() === 'hot'" (click)="onSortChange('hot')">Hot</button>
         <button mat-button [class.active]="selectedSort() === 'new'" (click)="onSortChange('new')">New</button>
         <button mat-button [class.active]="selectedSort() === 'top'" (click)="onSortChange('top')">Top</button>
@@ -37,15 +38,15 @@
     </mat-card>
 
     <!-- Loading -->
-    @if (postService.loading()) {
+    @if (feedService.loading()) {
       <div class="loading-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading posts...</p>
+        <p>Loading your personalized feed...</p>
       </div>
     }
 
     <!-- Error -->
-    @if (postService.error(); as err) {
+    @if (feedService.error(); as err) {
       <mat-card class="error-card">
         <mat-icon>error_outline</mat-icon>
         <p>{{ err }}</p>
@@ -54,16 +55,16 @@
     }
 
     <!-- Posts -->
-    @for (post of postService.posts(); track post.id) {
+    @for (post of feedService.posts(); track post.id) {
       <mat-card class="post-card">
         <div class="post-content">
           <!-- Voting -->
           <div class="voting-section">
-            <button mat-icon-button class="vote-btn upvote" (click)="onVote(post, 'upvote')">
+            <button mat-icon-button class="vote-btn upvote" [class.voted]="post.userInteraction.hasUpvoted" (click)="onVote(post, 'upvote')">
               <mat-icon>arrow_upward</mat-icon>
             </button>
-            <span class="vote-count">{{ post.score | formatNumber }}</span>
-            <button mat-icon-button class="vote-btn downvote" (click)="onVote(post, 'downvote')">
+            <span class="vote-count" [class.upvoted]="post.userInteraction.hasUpvoted" [class.downvoted]="post.userInteraction.hasDownvoted">{{ post.score | formatNumber }}</span>
+            <button mat-icon-button class="vote-btn downvote" [class.voted]="post.userInteraction.hasDownvoted" (click)="onVote(post, 'downvote')">
               <mat-icon>arrow_downward</mat-icon>
             </button>
           </div>
@@ -96,15 +97,6 @@
               <p class="post-content-preview">{{ post.content }}</p>
             }
 
-            @if (post.awardCount > 0) {
-              <div class="post-awards">
-                <span class="award-badge">
-                  <mat-icon>emoji_events</mat-icon>
-                  {{ post.awardCount }} {{ post.awardCount === 1 ? 'Award' : 'Awards' }}
-                </span>
-              </div>
-            }
-
             <div class="post-actions">
               <a class="action-btn" [routerLink]="'/posts/' + post.id">
                 <mat-icon>chat_bubble_outline</mat-icon>
@@ -115,8 +107,8 @@
                 <span>Share</span>
               </button>
               <button class="action-btn">
-                <mat-icon>bookmark_border</mat-icon>
-                <span>Save</span>
+                <mat-icon>{{ post.userInteraction.isSaved ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+                <span>{{ post.userInteraction.isSaved ? 'Saved' : 'Save' }}</span>
               </button>
             </div>
           </div>
@@ -125,21 +117,21 @@
     }
 
     <!-- Empty -->
-    @if (!postService.loading() && !postService.error() && postService.posts().length === 0) {
+    @if (!feedService.loading() && !feedService.error() && feedService.posts().length === 0) {
       <mat-card class="empty-state">
         <div class="empty-content">
           <mat-icon class="empty-icon">inbox</mat-icon>
           <h3>No posts yet</h3>
-          <p>Be the first to create a post</p>
+          <p>Be the first to create a post or subscribe to communities</p>
           <button mat-raised-button color="primary" (click)="onCreatePost()">Create Post</button>
         </div>
       </mat-card>
     }
 
     <!-- Load More -->
-    @if (postService.posts().length >= 20) {
+    @if (feedService.posts().length >= 20 && feedService.hasMore()) {
       <div class="load-more">
-        <button mat-stroked-button (click)="loadMore()" [disabled]="postService.loading()">
+        <button mat-stroked-button (click)="loadMore()" [disabled]="feedService.loading()">
           Load More
         </button>
       </div>
@@ -148,6 +140,7 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
+    <!-- Home Card -->
     <mat-card class="sidebar-card">
       <div class="card-header"><h3>Home</h3></div>
       <div class="card-content">
@@ -160,5 +153,69 @@
         </button>
       </div>
     </mat-card>
+
+    <!-- Suggested Users Card -->
+    @if (feedService.suggestedUsers() && feedService.suggestedUsers().length > 0) {
+      <mat-card class="sidebar-card">
+        <div class="card-header">
+          <h3>Recommended Users</h3>
+        </div>
+        <div class="card-content">
+          @for (user of feedService.suggestedUsers(); track user.id) {
+            <div class="suggested-user">
+              <a [routerLink]="'/user/' + user.username" class="user-link">
+                <div class="user-info">
+                  @if (user.avatarUrl) {
+                    <img [src]="user.avatarUrl" [alt]="user.username" class="user-avatar-sm">
+                  } @else {
+                    <mat-icon class="user-avatar-placeholder">account_circle</mat-icon>
+                  }
+                  <div class="user-details">
+                    <span class="username">
+                      u/{{ user.username }}
+                      @if (user.isVerified) {
+                        <mat-icon class="verified-icon-sm">verified</mat-icon>
+                      }
+                    </span>
+                    <span class="karma">{{ user.karma | formatNumber }} karma</span>
+                  </div>
+                </div>
+              </a>
+              <div class="user-reasons">
+                @for (reason of user.reasons; track reason) {
+                  <span class="reason-tag">{{ reason }}</span>
+                }
+              </div>
+            </div>
+            @if (!$last) {
+              <mat-divider class="user-divider"></mat-divider>
+            }
+          }
+        </div>
+      </mat-card>
+    }
+
+    <!-- Algorithm Stats Card -->
+    @if (feedService.algorithmInfo(); as algo) {
+      <mat-card class="sidebar-card algorithm-stats">
+        <div class="card-header">
+          <h3>Feed Stats</h3>
+        </div>
+        <div class="card-content">
+          <div class="stat-row">
+            <span class="stat-label">Available Posts:</span>
+            <span class="stat-value">{{ feedService.totalAvailable() | formatNumber }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Processing Time:</span>
+            <span class="stat-value">{{ algo.processingTimeMs }}ms</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Time Decay:</span>
+            <span class="stat-value">{{ algo.timeDecayFactor }}x</span>
+          </div>
+        </div>
+      </mat-card>
+    }
   </aside>
 </div>

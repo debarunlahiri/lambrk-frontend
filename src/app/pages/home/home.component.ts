@@ -6,11 +6,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Post } from '../../models/post.model';
 import { PostService } from '../../services/post.service';
+import { FeedService } from '../../services/feed.service';
 import { AuthService } from '../../services/auth.service';
 import { WebSocketService } from '../../services/websocket.service';
 import { FormatNumberPipe, TimeAgoPipe } from '../../pipes/format.pipes';
+import { FeedPost, SuggestedUser } from '../../models/feed.model';
 
 @Component({
   selector: 'app-home',
@@ -30,17 +31,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
   postService = inject(PostService);
+  feedService = inject(FeedService);
   authService = inject(AuthService);
   private wsService = inject(WebSocketService);
 
   searchControl = new FormControl('');
-  selectedSort = signal<string>('hot');
+  selectedSort = signal<'algorithm' | 'hot' | 'new' | 'top'>('algorithm');
   currentPage = signal<number>(1);
+  showAlgorithmInfo = signal<boolean>(false);
 
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.loadPosts();
+    this.loadFeed();
     this.setupWebSocketSubscriptions();
 
     // Wire up search with debounce
@@ -50,7 +53,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (query && query.trim().length > 0) {
           this.postService.searchPosts(query.trim(), 0, 20).subscribe();
         } else {
-          this.loadPosts();
+          this.loadFeed();
         }
       });
   }
@@ -59,7 +62,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Subscribe to post updates (score, comment count, etc.)
     this.wsService.postUpdates$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (update) => {
-        const currentPosts = this.postService.posts();
+        const currentPosts = this.feedService.posts();
         const index = currentPosts.findIndex((p) => p.id === update.id);
         if (index !== -1) {
           // Update the post with new values
@@ -70,9 +73,8 @@ export class HomeComponent implements OnInit, OnDestroy {
             upvoteCount: update.upvoteCount,
             downvoteCount: update.downvoteCount,
             viewCount: update.viewCount,
-            awardCount: update.awardCount,
           };
-          this.postService.posts.set([...currentPosts]);
+          this.feedService.posts.set([...currentPosts]);
         }
       },
     });
@@ -81,15 +83,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.wsService.voteUpdates$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (vote) => {
         if (vote.targetType === 'POST') {
-          const currentPosts = this.postService.posts();
+          const currentPosts = this.feedService.posts();
           const index = currentPosts.findIndex((p) => p.id === vote.targetId);
           if (index !== -1) {
             currentPosts[index] = {
               ...currentPosts[index],
               score: vote.newScore,
-              userVote: vote.userVote,
+              userInteraction: {
+                ...currentPosts[index].userInteraction,
+                hasUpvoted: vote.userVote === 'UPVOTE',
+                hasDownvoted: vote.userVote === 'DOWNVOTE',
+              },
             };
-            this.postService.posts.set([...currentPosts]);
+            this.feedService.posts.set([...currentPosts]);
           }
         }
       },
@@ -112,26 +118,34 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadPosts(): void {
-    const page = this.currentPage() - 1; // API uses 0-based indexing
+  loadFeed(): void {
     const sort = this.selectedSort();
+    const limit = 20;
 
-    if (sort === 'hot') {
-      this.postService.getHotPosts(page, 20).subscribe();
-    } else if (sort === 'new') {
-      this.postService.getNewPosts(page, 20).subscribe();
-    } else if (sort === 'top') {
-      this.postService.getTopPosts(page, 20).subscribe();
+    switch (sort) {
+      case 'hot':
+        this.feedService.getHotPosts(limit).subscribe();
+        break;
+      case 'new':
+        this.feedService.getNewPosts(limit).subscribe();
+        break;
+      case 'top':
+        this.feedService.getTopPosts(limit).subscribe();
+        break;
+      case 'algorithm':
+      default:
+        this.feedService.getFeed({ limit, sortBy: 'algorithm' }).subscribe();
+        break;
     }
   }
 
-  onSortChange(sort: string): void {
+  onSortChange(sort: 'algorithm' | 'hot' | 'new' | 'top'): void {
     this.selectedSort.set(sort);
     this.currentPage.set(1);
-    this.loadPosts();
+    this.loadFeed();
   }
 
-  onVote(post: Post, voteType: 'upvote' | 'downvote'): void {
+  onVote(post: FeedPost, voteType: 'upvote' | 'downvote'): void {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/auth/login'], {
         queryParams: { returnUrl: this.router.url },
@@ -142,9 +156,23 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Convert to API format
     const apiVoteType = voteType === 'upvote' ? 'UPVOTE' : 'DOWNVOTE';
     // If already voted the same way, remove vote
-    const finalVote = post.userVote === apiVoteType ? null : apiVoteType;
+    const finalVote = post.userInteraction.hasUpvoted && voteType === 'upvote'
+      ? null
+      : post.userInteraction.hasDownvoted && voteType === 'downvote'
+      ? null
+      : apiVoteType;
 
     this.postService.votePost(post.id, finalVote).subscribe();
+  }
+
+  toggleAlgorithmInfo(): void {
+    this.showAlgorithmInfo.update(v => !v);
+  }
+
+  getUserVoteStatus(post: FeedPost): string | null {
+    if (post.userInteraction.hasUpvoted) return 'UPVOTE';
+    if (post.userInteraction.hasDownvoted) return 'DOWNVOTE';
+    return null;
   }
 
   onClearSearch(): void {
@@ -163,11 +191,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   refreshFeed(): void {
     this.currentPage.set(1);
-    this.loadPosts();
+    this.loadFeed();
   }
 
   loadMore(): void {
     this.currentPage.update((p) => p + 1);
-    this.loadPosts();
+    // TODO: Implement pagination with feed API
+    this.loadFeed();
   }
 }
