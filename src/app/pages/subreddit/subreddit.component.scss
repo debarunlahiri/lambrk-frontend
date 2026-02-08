@@ -1,6 +1,6 @@
 .subreddit-container {
   min-height: 100vh;
-  background: #dae0e6;
+  background: var(--bg-primary);
 }
 
 // Loading & Error States
@@ -12,6 +12,7 @@
   justify-content: center;
   padding: 80px 20px;
   text-align: center;
+  background: var(--bg-primary);
 
   mat-icon {
     font-size: 64px;
@@ -203,6 +204,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  background-color: var(--bg-primary);
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 24px;
@@ -302,6 +305,7 @@
     line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
